@@ -8,13 +8,35 @@ $contacto = new Contacto($conexion);
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Manejo de operaciones para agregar cumpleaños
-    if (isset($_POST['action']) && $_POST['action'] == 'add') {
-        $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
-        $fechaCumple = mysqli_real_escape_string($conexion, $_POST['fechaCumple']);
-        $contacto->agregarCumpleaños($nombre, $fechaCumple);
+    // Manejo de operaciones para agregar, editar y eliminar cumpleaños
+    if (isset($_POST['action'])) {
+        if ($_POST['action'] == 'add') {
+            $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
+            $fechaCumple = mysqli_real_escape_string($conexion, $_POST['fechaCumple']);
+            $email = mysqli_real_escape_string($conexion, $_POST['email']);
+            $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
+            
+            // Agregar cumpleaños
+            $contacto->agregarCumpleaños($nombre, $fechaCumple, $email, $telefono);
+        } elseif ($_POST['action'] == 'edit') {
+            $id = $_POST['id'];
+            $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
+            $fechaCumple = mysqli_real_escape_string($conexion, $_POST['fechaCumple']);
+            $email = mysqli_real_escape_string($conexion, $_POST['email']);
+            $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
+            
+            // Editar cumpleaños
+            $contacto->editarCumpleaños($id, $nombre, $fechaCumple, $email, $telefono);
+        } elseif ($_POST['action'] == 'delete') {
+            $id = $_POST['id'];
+            
+            // Eliminar cumpleaños
+            $contacto->eliminarCumpleaños($id);
+        }
     }
 }
+
+$cumpleanos = $contacto->mostrarCumpleaños($conexion);
 ?>
 
 <!DOCTYPE html>
@@ -38,16 +60,67 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label for="fechaCumple">Fecha de Cumpleaños:</label>
                 <input type="date" class="form-control" id="fechaCumple" name="fechaCumple" required>
             </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="telefono">Teléfono:</label>
+                <input type="text" class="form-control" id="telefono" name="telefono" required>
+            </div>
             <input type="hidden" name="action" value="add">
             <button type="submit" class="btn btn-primary">Agregar Cumpleaños</button>
         </form>
 
-        <h3>Cumpleaños</h3>
-        <?php $contacto->mostrarCumpleaños($conexion); // Método para mostrar cumpleaños ?>
-        
-        <div class="text-center">
+        <h3 class="mt-5">Cumpleaños</h3>
+        <?php if ($cumpleanos): ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Fecha</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($cumpleanos as $cumple): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($cumple['nombre']); ?></td>
+                            <td><?php echo htmlspecialchars($cumple['fecha']); ?></td>
+                            <td><?php echo htmlspecialchars($cumple['email']); ?></td>
+                            <td><?php echo htmlspecialchars($cumple['telefono']); ?></td>
+                            <td>
+                                <button class="btn btn-warning" onclick="editBirthday(<?php echo $cumple['id']; ?>, '<?php echo addslashes($cumple['nombre']); ?>', '<?php echo $cumple['fecha']; ?>', '<?php echo addslashes($cumple['email']); ?>', '<?php echo addslashes($cumple['telefono']); ?>')">Editar</button>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?php echo $cumple['id']; ?>">
+                                    <input type="hidden" name="action" value="delete">
+                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No hay cumpleaños registrados.</p>
+        <?php endif; ?>
+
+        <div class="text-center mt-4">
             <a href="logout.php" class="btn btn-danger">Cerrar sesión</a>
         </div>
     </div>
+
+    <script>
+        function editBirthday(id, nombre, fecha, email, telefono) {
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('fechaCumple').value = fecha;
+            document.getElementById('email').value = email;
+            document.getElementById('telefono').value = telefono;
+            document.querySelector('input[name="action"]').value = 'edit';
+            document.querySelector('input[name="id"]').value = id;
+        }
+    </script>
 </body>
 </html>

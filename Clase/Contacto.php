@@ -8,7 +8,7 @@ class Contacto
         $this->conexion = $conexion;
         $this->nombre = $nombre;
         $this->correo = $correo;
-        $this->telefono = $telefono; // Manejo del teléfono
+        $this->telefono = $telefono;
     }
 
     // Método para registrar un contacto
@@ -19,47 +19,45 @@ class Contacto
         mysqli_stmt_bind_param($stmt, "ssss", $nombre, $correo, $telefono, $password);
 
         if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
             return true;
         } else {
-            return "Error al registrar el contacto: " . mysqli_error($this->conexion);
+            $error = mysqli_error($this->conexion);
+            mysqli_stmt_close($stmt);
+            return "Error al registrar el contacto: $error";
         }
-
-        mysqli_stmt_close($stmt);
     }
 
     // Método para mostrar cumpleaños
-    public static function mostrarCumpleaños($conexion)
+    public function mostrarCumpleaños()
     {
-        $sql = "SELECT * FROM cumpleaños";
-        $stmt = mysqli_prepare($conexion, $sql);
-        mysqli_stmt_execute($stmt);
-        $resultado = mysqli_stmt_get_result($stmt);
+        $sql = "SELECT * FROM cumpleaños ORDER BY fecha ASC";
+        $resultado = $this->conexion->query($sql);
+        $cumpleanos = [];
 
-        if (mysqli_num_rows($resultado) > 0) {
-            while ($fila = mysqli_fetch_assoc($resultado)) {
-                echo "Nombre: " . $fila["nombre"] . " - Fecha: " . $fila["fecha"] . "<br>";
+        if ($resultado) {
+            while ($row = $resultado->fetch_assoc()) {
+                $cumpleanos[] = $row;
             }
-        } else {
-            echo "No hay cumpleaños registrados.";
         }
-
-        mysqli_stmt_close($stmt);
+        return $cumpleanos;
     }
 
     // Método para agregar cumpleaños
-    public function agregarCumpleaños($nombre, $fechaCumple)
+    public function agregarCumpleaños($nombre, $fechaCumple, $email, $telefono)
     {
-        $sql = "INSERT INTO cumpleaños (nombre, fecha) VALUES (?, ?)";
+        $sql = "INSERT INTO cumpleaños (nombre, fecha, email, telefono) VALUES (?, ?, ?, ?)";
         $stmt = mysqli_prepare($this->conexion, $sql);
-        mysqli_stmt_bind_param($stmt, "ss", $nombre, $fechaCumple);
+        mysqli_stmt_bind_param($stmt, "ssss", $nombre, $fechaCumple, $email, $telefono);
 
         if (mysqli_stmt_execute($stmt)) {
-            echo "Cumpleaños registrado correctamente.";
+            mysqli_stmt_close($stmt);
+            return true;
         } else {
-            echo "Error al registrar el cumpleaños: " . mysqli_error($this->conexion);
+            $error = mysqli_error($this->conexion);
+            mysqli_stmt_close($stmt);
+            return "Error al registrar el cumpleaños: $error";
         }
-
-        mysqli_stmt_close($stmt);
     }
 
     // Método para iniciar sesión
@@ -71,18 +69,53 @@ class Contacto
         mysqli_stmt_execute($stmt);
         $resultado = mysqli_stmt_get_result($stmt);
 
-        if (mysqli_num_rows($resultado) > 0) {
+        if ($resultado && mysqli_num_rows($resultado) > 0) {
             $contacto = mysqli_fetch_assoc($resultado);
             if (password_verify($password, $contacto['password'])) {
-                return $contacto; // Devuelve el contacto
+                mysqli_stmt_close($stmt);
+                return $contacto;
             } else {
+                mysqli_stmt_close($stmt);
                 return "Contraseña incorrecta.";
             }
         } else {
+            mysqli_stmt_close($stmt);
             return "El contacto no existe.";
         }
+    }
 
-        mysqli_stmt_close($stmt);
+    // Método para editar cumpleaños
+    public function editarCumpleaños($id, $nombre, $fecha, $email, $telefono)
+    {
+        $sql = "UPDATE cumpleaños SET nombre = ?, fecha = ?, email = ?, telefono = ? WHERE id = ?";
+        $stmt = mysqli_prepare($this->conexion, $sql);
+        mysqli_stmt_bind_param($stmt, "ssssi", $nombre, $fecha, $email, $telefono, $id);
+
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return true;
+        } else {
+            $error = mysqli_error($this->conexion);
+            mysqli_stmt_close($stmt);
+            return "Error al editar el cumpleaños: $error";
+        }
+    }
+
+    // Método para eliminar cumpleaños
+    public function eliminarCumpleaños($id)
+    {
+        $sql = "DELETE FROM cumpleaños WHERE id = ?";
+        $stmt = mysqli_prepare($this->conexion, $sql);
+        mysqli_stmt_bind_param($stmt, "i", $id);
+
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return true;
+        } else {
+            $error = mysqli_error($this->conexion);
+            mysqli_stmt_close($stmt);
+            return "Error al eliminar el cumpleaños: $error";
+        }
     }
 }
 ?>

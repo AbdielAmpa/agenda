@@ -7,18 +7,24 @@ $contacto = new Contacto($conexion);
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = mysqli_real_escape_string($conexion, $_POST['email']);
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'];
 
-    $resultado = $contacto->iniciarSesion($email, $password);
-    
-    if (is_array($resultado)) {
-        $_SESSION['usuario'] = $resultado['nombre'];
-        $_SESSION['autenticado'] = true; // Indica que el usuario está autenticado
-        header("Location: panel.php"); // Redirige al panel de usuario
-        exit;
+    // Validar email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Email no válido.";
     } else {
-        $error = htmlspecialchars($resultado); // Muestra el error de forma segura
+        $resultado = $contacto->iniciarSesion($email, $password);
+
+        if (is_array($resultado)) {
+            $_SESSION['usuario'] = $resultado['nombre'];
+            $_SESSION['autenticado'] = true;
+            session_regenerate_id(true); // Regenerar ID de sesión
+            header("Location: panel.php");
+            exit;
+        } else {
+            $error = htmlspecialchars($resultado);
+        }
     }
 }
 ?>
@@ -47,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
             <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            <a href="register.php" class="btn btn-link">Registrarse</a>
         </form>
     </div>
 </body>
