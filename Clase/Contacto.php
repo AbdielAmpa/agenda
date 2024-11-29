@@ -28,6 +28,21 @@ class Contacto
         }
     }
 
+    // Método para obtener todos los contactos
+    public function obtenerContactos()
+    {
+        $sql = "SELECT * FROM contactos ORDER BY nombre ASC";
+        $resultado = $this->conexion->query($sql);
+        $contactos = [];
+
+        if ($resultado) {
+            while ($row = $resultado->fetch_assoc()) {
+                $contactos[] = $row;
+            }
+        }
+        return $contactos;
+    }
+
     // Método para mostrar cumpleaños
     public function mostrarCumpleaños()
     {

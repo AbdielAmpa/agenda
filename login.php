@@ -5,6 +5,7 @@ require_once('../agenda/Clase/Contacto.php');
 
 $contacto = new Contacto($conexion);
 $error = '';
+$contactos = $contacto->obtenerContactos(); // Método para obtener contactos registrados
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
@@ -55,6 +56,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
             <a href="register.php" class="btn btn-link">Registrarse</a>
         </form>
+
+        <h3 class="mt-5">Contactos Registrados</h3>
+        <?php if ($contactos): ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($contactos as $contacto): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($contacto['nombre']); ?></td>
+                            <td><?php echo htmlspecialchars($contacto['correo']); ?></td>
+                            <td><?php echo htmlspecialchars($contacto['telefono']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No hay contactos registrados.</p>
+        <?php endif; ?>
+
+
     </div>
+
+    <script>
+        function editContact(id, nombre, email, telefono) {
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('email').value = email;
+            document.getElementById('telefono').value = telefono;
+            document.querySelector('input[name="action"]').value = 'edit';
+            document.querySelector('input[name="id"]').value = id;
+        }
+    </script>
 </body>
 </html>
