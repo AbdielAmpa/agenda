@@ -81,7 +81,6 @@ $cumpleanos = $contacto->mostrarCumpleaños($conexion);
                         <th>Fecha</th>
                         <th>Email</th>
                         <th>Teléfono</th>
-                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,14 +90,6 @@ $cumpleanos = $contacto->mostrarCumpleaños($conexion);
                             <td><?php echo htmlspecialchars($cumple['fecha']); ?></td>
                             <td><?php echo htmlspecialchars($cumple['email']); ?></td>
                             <td><?php echo htmlspecialchars($cumple['telefono']); ?></td>
-                            <td>
-                                <button class="btn btn-warning" onclick="editBirthday(<?php echo $cumple['id']; ?>, '<?php echo addslashes($cumple['nombre']); ?>', '<?php echo $cumple['fecha']; ?>', '<?php echo addslashes($cumple['email']); ?>', '<?php echo addslashes($cumple['telefono']); ?>')">Editar</button>
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $cumple['id']; ?>">
-                                    <input type="hidden" name="action" value="delete">
-                                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                                </form>
-                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
